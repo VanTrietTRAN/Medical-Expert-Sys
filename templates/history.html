@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch Sử Chẩn Đoán - Hệ Chuyên Gia Y Tế{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Page Header -->
+    <div class="col-12 mb-4">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-history me-2"></i>
+                    Lịch Sử Chẩn Đoán
+                </h2>
+                <p class="lead mb-0">
+                    Xem lại các lần chẩn đoán trước đó và kết quả phân tích
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Controls -->
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Bộ Lọc và Tìm Kiếm
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-search me-1"></i>
+                            Tìm kiếm:
+                        </label>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Tìm theo triệu chứng hoặc chẩn đoán...">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-filter me-1"></i>
+                            Trạng thái:
+                        </label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Tất cả</option>
+                            <option value="diagnosis">Đã chẩn đoán</option>
+                            <option value="suspected">Nghi ngờ</option>
+                            <option value="unknown">Không xác định</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Số lượng hiển thị:
+                        </label>
+                        <select class="form-select" id="limitFilter">
+                            <option value="10">10 mục</option>
+                            <option value="25">25 mục</option>
+                            <option value="50">50 mục</option>
+                            <option value="100">100 mục</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" id="refreshBtn">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Làm mới
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History List -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Danh Sách Chẩn Đoán
+                </h5>
+                <div>
+                    <button class="btn btn-outline-light btn-sm me-2" id="exportBtn">
+                        <i class="fas fa-download me-1"></i>
+                        Xuất dữ liệu
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" id="clearHistoryBtn">
+                        <i class="fas fa-trash me-1"></i>
+                        Xóa lịch sử
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="historyContainer">
+                    <!-- Loading indicator -->
+                    <div class="text-center py-5" id="loadingIndicator">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Đang tải lịch sử chẩn đoán...</p>
+                    </div>
+                    
+                    <!-- Empty state -->
+                    <div class="text-center py-5" id="emptyState" style="display: none;">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có lịch sử chẩn đoán</h5>
+                        <p class="text-muted">Hãy thực hiện chẩn đoán đầu tiên để xem lịch sử ở đây.</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fas fa-stethoscope me-1"></i>
+                            Bắt đầu chẩn đoán
+                        </a>
+                    </div>
+                    
+                    <!-- History items will be loaded here -->
+                    <div id="historyList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Item Template (hidden) -->
+<template id="historyItemTemplate">
+    <div class="history-item card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-clock me-1"></i>
+                            <span class="timestamp"></span>
+                        </h6>
+                        <span class="badge status-badge"></span>
+                    </div>
+                    
+                    <div class="symptoms-section mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-list me-1"></i>
+                            Triệu chứng:
+                        </small>
+                        <div class="symptoms-list mt-1"></div>
+                    </div>
+                    
+                    <div class="result-section">
+                        <div class="diagnosis-result"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="d-flex flex-column gap-2">
+                        <button class="btn btn-outline-primary btn-sm copy-btn" data-text="">
+                            <i class="fas fa-copy me-1"></i>
+                            Sao chép
+                        </button>
+                        <button class="btn btn-outline-info btn-sm repeat-btn">
+                            <i class="fas fa-redo me-1"></i>
+                            Lặp lại
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm delete-btn">
+                            <i class="fas fa-trash me-1"></i>
+                            Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa lịch sử chẩn đoán này không?</p>
+                <p class="text-muted small">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-1"></i>
+                    Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let historyData = [];
+    let filteredData = [];
+    let currentDeleteIndex = -1;
+
+    // Load history on page load
+    loadHistory();
+
+    // Refresh button
+    $('#refreshBtn').click(function() {
+        loadHistory();
+    });
+
+    // Search functionality
+    $('#searchInput').on('input', function() {
+        filterHistory();
+    });
+
+    // Status filter
+    $('#statusFilter').change(function() {
+        filterHistory();
+    });
+
+    // Limit filter
+    $('#limitFilter').change(function() {
+        loadHistory();
+    });
+
+    // Export data
+    $('#exportBtn').click(function() {
+        exportHistory();
+    });
+
+    // Clear all history
+    $('#clearHistoryBtn').click(function() {
+        if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử chẩn đoán?')) {
+            clearAllHistory();
+        }
+    });
+
+    // Load history from API
+    function loadHistory() {
+        const limit = $('#limitFilter').val();
+        
+        $('#loadingIndicator').show();
+        $('#emptyState').hide();
+        $('#historyList').empty();
+
+        API.getHistory(limit)
+            .done(function(response) {
+                if (response.success) {
+                    historyData = response.history;
+                    filteredData = [...historyData];
+                    displayHistory();
+                } else {
+                    showError('Không thể tải lịch sử chẩn đoán');
+                }
+            })
+            .fail(function() {
+                showError('Lỗi kết nối khi tải lịch sử');
+            })
+            .always(function() {
+                $('#loadingIndicator').hide();
+            });
+    }
+
+    // Display history items
+    function displayHistory() {
+        const $container = $('#historyList');
+        $container.empty();
+
+        if (filteredData.length === 0) {
+            $('#emptyState').show();
+            return;
+        }
+
+        filteredData.forEach((item, index) => {
+            const $item = createHistoryItem(item, index);
+            $container.append($item);
+        });
+    }
+
+    // Create history item element
+    function createHistoryItem(item, index) {
+        const template = document.getElementById('historyItemTemplate');
+        const clone = template.content.cloneNode(true);
+        
+        // Set timestamp
+        const timestamp = new Date(item.timestamp).toLocaleString('vi-VN');
+        clone.querySelector('.timestamp').textContent = timestamp;
+        
+        // Set status badge
+        const statusBadge = clone.querySelector('.status-badge');
+        const status = item.result.status;
+        statusBadge.textContent = getStatusText(status);
+        statusBadge.className = `badge ${getStatusClass(status)}`;
+        
+        // Set symptoms
+        const symptomsList = clone.querySelector('.symptoms-list');
+        item.symptoms.forEach(symptom => {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-light text-dark me-1 mb-1';
+            badge.textContent = symptom;
+            symptomsList.appendChild(badge);
+        });
+        
+        // Set diagnosis result
+        const resultDiv = clone.querySelector('.diagnosis-result');
+        resultDiv.innerHTML = formatDiagnosisResult(item.result);
+        
+        // Set copy button data
+        const copyBtn = clone.querySelector('.copy-btn');
+        copyBtn.setAttribute('data-text', JSON.stringify(item, null, 2));
+        
+        // Add event listeners
+        clone.querySelector('.copy-btn').addEventListener('click', function() {
+            copyToClipboard(this.getAttribute('data-text'));
+        });
+        
+        clone.querySelector('.repeat-btn').addEventListener('click', function() {
+            repeatDiagnosis(item.symptoms);
+        });
+        
+        clone.querySelector('.delete-btn').addEventListener('click', function() {
+            showDeleteConfirmation(index);
+        });
+        
+        return clone;
+    }
+
+    // Filter history
+    function filterHistory() {
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        const statusFilter = $('#statusFilter').val();
+        
+        filteredData = historyData.filter(item => {
+            // Search filter
+            const searchMatch = !searchTerm || 
+                item.symptoms.some(s => s.toLowerCase().includes(searchTerm)) ||
+                (item.result.diagnosis && item.result.diagnosis.toLowerCase().includes(searchTerm));
+            
+            // Status filter
+            const statusMatch = !statusFilter || item.result.status === statusFilter;
+            
+            return searchMatch && statusMatch;
+        });
+        
+        displayHistory();
+    }
+
+    // Format diagnosis result for display
+    function formatDiagnosisResult(result) {
+        let html = '';
+        
+        if (result.status === 'diagnosis') {
+            html = `
+                <div class="alert alert-success mb-0">
+                    <h6><i class="fas fa-check-circle me-1"></i>Chẩn đoán</h6>
+                    <h5 class="text-success">${result.diagnosis}</h5>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: ${result.confidence_percentage}%">
+                            ${result.confidence_percentage.toFixed(1)}%
+                        </div>
+                    </div>
+                    <small class="text-muted">Độ tin cậy: ${result.confidence} điểm</small>
+                </div>
+            `;
+        } else if (result.status === 'suspected') {
+            html = `
+                <div class="alert alert-warning mb-0">
+                    <h6><i class="fas fa-question-circle me-1"></i>Nghi ngờ</h6>
+                    <div class="list-group list-group-flush">
+            `;
+            
+            result.top_diseases.forEach(disease => {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${disease[0]}</span>
+                        <span class="badge bg-warning text-dark">${disease[1]} điểm</span>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar bg-warning" style="width: ${result.confidence_percentage}%">
+                            ${result.confidence_percentage.toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            html = `
+                <div class="alert alert-info mb-0">
+                    <h6><i class="fas fa-info-circle me-1"></i>Không xác định</h6>
+                    <p class="mb-0">${result.message}</p>
+                </div>
+            `;
+        }
+        
+        return html;
+    }
+
+    // Get status text
+    function getStatusText(status) {
+        const statusMap = {
+            'diagnosis': 'Đã chẩn đoán',
+            'suspected': 'Nghi ngờ',
+            'unknown': 'Không xác định'
+        };
+        return statusMap[status] || status;
+    }
+
+    // Get status class
+    function getStatusClass(status) {
+        const classMap = {
+            'diagnosis': 'bg-success',
+            'suspected': 'bg-warning',
+            'unknown': 'bg-info'
+        };
+        return classMap[status] || 'bg-secondary';
+    }
+
+    // Copy to clipboard
+    function copyToClipboard(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                Utils.showNotification('Đã sao chép vào clipboard', 'success');
+            });
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            Utils.showNotification('Đã sao chép vào clipboard', 'success');
+        }
+    }
+
+    // Repeat diagnosis
+    function repeatDiagnosis(symptoms) {
+        // Store symptoms in session and redirect to home
+        currentSession.selectedSymptoms = symptoms;
+        SessionManager.save();
+        window.location.href = '/';
+    }
+
+    // Show delete confirmation
+    function showDeleteConfirmation(index) {
+        currentDeleteIndex = index;
+        $('#deleteModal').modal('show');
+    }
+
+    // Confirm delete
+    $('#confirmDeleteBtn').click(function() {
+        if (currentDeleteIndex >= 0) {
+            deleteHistoryItem(currentDeleteIndex);
+            $('#deleteModal').modal('hide');
+            currentDeleteIndex = -1;
+        }
+    });
+
+    // Delete history item
+    function deleteHistoryItem(index) {
+        // Remove from local data
+        historyData.splice(index, 1);
+        filteredData = [...historyData];
+        displayHistory();
+        
+        Utils.showNotification('Đã xóa mục lịch sử', 'success');
+    }
+
+    // Export history
+    function exportHistory() {
+        const dataStr = JSON.stringify(historyData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `medical_diagnosis_history_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        Utils.showNotification('Đã xuất dữ liệu lịch sử', 'success');
+    }
+
+    // Clear all history
+    function clearAllHistory() {
+        historyData = [];
+        filteredData = [];
+        displayHistory();
+        Utils.showNotification('Đã xóa toàn bộ lịch sử', 'success');
+    }
+
+    // Show error
+    function showError(message) {
+        Utils.showNotification(message, 'error');
+    }
+});
+</script>
+{% endblock %} 

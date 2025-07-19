@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Thông Tin Hệ Thống - Hệ Chuyên Gia Y Tế{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- System Overview -->
+    <div class="col-12 mb-4">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-heartbeat me-2"></i>
+                    Hệ Chuyên Gia Y Tế
+                </h2>
+                <p class="lead mb-0">
+                    Hệ thống hỗ trợ chẩn đoán bệnh dựa trên trí tuệ nhân tạo
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Statistics -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Thống Kê Hệ Thống
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-disease fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Tổng số bệnh</h6>
+                                <h4 class="mb-0 text-primary">{{ stats.total_diseases }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-stethoscope fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Tổng số triệu chứng</h6>
+                                <h4 class="mb-0 text-success">{{ stats.total_symptoms }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-cogs fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Luật chẩn đoán</h6>
+                                <h4 class="mb-0 text-warning">{{ stats.total_rules }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-info text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-chart-line fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Lần chẩn đoán</h6>
+                                <h4 class="mb-0 text-info">{{ stats.diagnosis_count }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Information -->
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Thông Tin Kỹ Thuật
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Công Nghệ Sử Dụng</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-code text-primary me-2"></i>
+                                <strong>Backend:</strong> Python Flask
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-database text-success me-2"></i>
+                                <strong>Knowledge Base:</strong> JSON
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-brain text-warning me-2"></i>
+                                <strong>AI Engine:</strong> Rule-based Expert System
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-palette text-info me-2"></i>
+                                <strong>Frontend:</strong> Bootstrap 5 + jQuery
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Tính Năng Chính</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Chẩn đoán dựa trên triệu chứng
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Fuzzy matching cho triệu chứng
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Tính toán độ tin cậy
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Lưu trữ lịch sử chẩn đoán
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Thông Tin Phiên Bản
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Phiên bản:</strong></td>
+                                <td>{{ stats.knowledge_version }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cập nhật cuối:</strong></td>
+                                <td>{{ stats.last_updated }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ngôn ngữ:</strong></td>
+                                <td>Tiếng Việt</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Hệ điều hành:</strong></td>
+                                <td>Cross-platform</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Database:</strong></td>
+                                <td>JSON File</td>
+                            </tr>
+                            <tr>
+                                <td><strong>License:</strong></td>
+                                <td>MIT</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Links -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-link me-1"></i>
+                    Liên Kết Nhanh
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-home me-1"></i>
+                        Trang chủ
+                    </a>
+                    <a href="{{ url_for('history') }}" class="btn btn-outline-info">
+                        <i class="fas fa-history me-1"></i>
+                        Lịch sử chẩn đoán
+                    </a>
+                    <button class="btn btn-outline-secondary print-btn">
+                        <i class="fas fa-print me-1"></i>
+                        In trang này
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Lưu Ý Quan Trọng
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning mb-0">
+                    <small>
+                        <strong>⚠️ Chỉ mang tính chất tham khảo</strong><br>
+                        Hệ thống này được thiết kế để hỗ trợ chẩn đoán ban đầu và không thay thế cho tư vấn y tế chuyên nghiệp.
+                    </small>
+                </div>
+                <hr>
+                <div class="alert alert-info mb-0">
+                    <small>
+                        <strong>💡 Khuyến nghị</strong><br>
+                        Luôn tham khảo ý kiến bác sĩ để có chẩn đoán chính xác và điều trị phù hợp.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-envelope me-1"></i>
+                    Liên Hệ
+                </h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <i class="fas fa-code me-1"></i>
+                    <strong>Developer:</strong> Pitt<br>
+                    <i class="fas fa-calendar me-1"></i>
+                    <strong>Năm:</strong> 2025<br>
+                    <i class="fas fa-github me-1"></i>
+                    <strong>Source:</strong> Open Source Project
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

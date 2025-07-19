@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}Chẩn Đoán Bệnh - Hệ Chuyên Gia Y Tế{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- System Statistics -->
+    <div class="col-12 mb-4">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <i class="fas fa-disease fa-2x mb-2"></i>
+                        <h5>{{ stats.total_diseases }}</h5>
+                        <small>Bệnh</small>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-stethoscope fa-2x mb-2"></i>
+                        <h5>{{ stats.total_symptoms }}</h5>
+                        <small>Triệu chứng</small>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-cogs fa-2x mb-2"></i>
+                        <h5>{{ stats.total_rules }}</h5>
+                        <small>Luật chẩn đoán</small>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        <h5>{{ stats.diagnosis_count }}</h5>
+                        <small>Lần chẩn đoán</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Symptom Selection -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    Chọn Triệu Chứng
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="diagnosisForm">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-search me-1"></i>
+                            Tìm kiếm triệu chứng:
+                        </label>
+                        <input type="text" class="form-control" id="symptomSearch" 
+                               placeholder="Nhập tên triệu chứng để tìm kiếm...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-check-square me-1"></i>
+                            Chọn các triệu chứng bạn đang gặp phải:
+                        </label>
+                        <div id="symptomList" class="row">
+                            {% for symptom in symptoms %}
+                            <div class="col-md-6 col-lg-4 mb-2 symptom-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           value="{{ symptom }}" id="symptom_{{ loop.index }}">
+                                    <label class="form-check-label" for="symptom_{{ loop.index }}">
+                                        {{ symptom }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-secondary" id="clearSelection">
+                            <i class="fas fa-eraser me-1"></i>
+                            Xóa lựa chọn
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="diagnoseBtn">
+                            <i class="fas fa-stethoscope me-1"></i>
+                            Chẩn Đoán
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Selected Symptoms Display -->
+        <div class="card mt-3" id="selectedSymptomsCard" style="display: none;">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-1"></i>
+                    Triệu Chứng Đã Chọn
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="selectedSymptomsList" class="d-flex flex-wrap gap-2">
+                    <!-- Selected symptoms will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnosis Results -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm" id="diagnosisCard" style="display: none;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-check me-2"></i>
+                    Kết Quả Chẩn Đoán
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="diagnosisResult">
+                    <!-- Diagnosis results will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-1"></i>
+                    Thao Tác Nhanh
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" id="commonColdBtn">
+                        <i class="fas fa-snowflake me-1"></i>
+                        Triệu chứng cảm lạnh
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" id="fluBtn">
+                        <i class="fas fa-thermometer-half me-1"></i>
+                        Triệu chứng cảm cúm
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" id="covidBtn">
+                        <i class="fas fa-virus me-1"></i>
+                        Triệu chứng COVID-19
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" id="viralFeverBtn">
+                        <i class="fas fa-fever me-1"></i>
+                        Triệu chứng sốt siêu vi
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Info -->
+        <div class="card mt-3">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Thông Tin Hệ Thống
+                </h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Phiên bản: {{ stats.knowledge_version }}<br>
+                    <i class="fas fa-calendar me-1"></i>
+                    Cập nhật: {{ stats.last_updated }}<br>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Chỉ mang tính chất tham khảo
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h6>Đang phân tích triệu chứng...</h6>
+                <small class="text-muted">Vui lòng chờ trong giây lát</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let selectedSymptoms = [];
+    
+    // Initialize selectedSymptoms from checked checkboxes
+    function initializeSelectedSymptoms() {
+        selectedSymptoms = $('input[type="checkbox"]:checked').map(function() {
+            return $(this).val();
+        }).get();
+        console.log('Initialized selected symptoms:', selectedSymptoms);
+        updateSelectedSymptomsDisplay();
+    }
+    
+    // Update selected symptoms display
+    function updateSelectedSymptomsDisplay() {
+        const $card = $('#selectedSymptomsCard');
+        const $list = $('#selectedSymptomsList');
+        
+        if (selectedSymptoms.length > 0) {
+            $list.empty();
+            selectedSymptoms.forEach(symptom => {
+                $list.append(`
+                    <span class="badge bg-primary">
+                        ${symptom}
+                        <i class="fas fa-times ms-1 remove-symptom" data-symptom="${symptom}"></i>
+                    </span>
+                `);
+            });
+            $card.show();
+        } else {
+            $card.hide();
+        }
+    }
+    
+    // Call initialization
+    initializeSelectedSymptoms();
+
+    // Symptom search functionality
+    $('#symptomSearch').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $('.symptom-item').each(function() {
+            const symptomText = $(this).find('label').text().toLowerCase();
+            if (symptomText.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Handle symptom selection - ensure this works correctly
+    $('input[type="checkbox"]').on('change', function() {
+        const symptom = $(this).val();
+        console.log('Checkbox changed:', symptom, 'checked:', $(this).is(':checked'));
+        
+        if ($(this).is(':checked')) {
+            if (!selectedSymptoms.includes(symptom)) {
+                selectedSymptoms.push(symptom);
+            }
+        } else {
+            selectedSymptoms = selectedSymptoms.filter(s => s !== symptom);
+        }
+        
+        console.log('Selected symptoms:', selectedSymptoms);
+        updateSelectedSymptomsDisplay();
+    });
+
+    // Remove symptom from selected list
+    $(document).on('click', '.remove-symptom', function() {
+        const symptom = $(this).data('symptom');
+        selectedSymptoms = selectedSymptoms.filter(s => s !== symptom);
+        $(`input[value="${symptom}"]`).prop('checked', false);
+        console.log('Symptom removed:', symptom, 'remaining:', selectedSymptoms);
+        updateSelectedSymptomsDisplay();
+    });
+
+    // Clear selection
+    $('#clearSelection').click(function() {
+        $('input[type="checkbox"]').prop('checked', false);
+        selectedSymptoms = [];
+        updateSelectedSymptomsDisplay();
+        $('#diagnosisCard').hide();
+        console.log('Selection cleared, selectedSymptoms:', selectedSymptoms);
+    });
+
+    // Quick action buttons
+    $('#commonColdBtn').click(function() {
+        setQuickSymptoms(['sổ mũi', 'hắt hơi', 'ho khan', 'đau họng']);
+    });
+
+    $('#fluBtn').click(function() {
+        setQuickSymptoms(['sốt cao', 'đau cơ', 'mệt mỏi', 'nhức đầu']);
+    });
+
+    $('#covidBtn').click(function() {
+        setQuickSymptoms(['sốt cao', 'ho khan', 'mất vị giác/khứu giác', 'mệt mỏi']);
+    });
+
+    $('#viralFeverBtn').click(function() {
+        setQuickSymptoms(['sưng hạch', 'phát ban đỏ', 'sốt cao', 'đau họng']);
+    });
+
+    function setQuickSymptoms(symptoms) {
+        // Clear current selection
+        $('input[type="checkbox"]').prop('checked', false);
+        selectedSymptoms = [];
+        
+        // Set new symptoms
+        symptoms.forEach(symptom => {
+            $(`input[value="${symptom}"]`).prop('checked', true);
+            selectedSymptoms.push(symptom);
+        });
+        
+        console.log('Quick symptoms set:', selectedSymptoms);
+        updateSelectedSymptomsDisplay();
+    }
+
+    // Handle form submission
+    $('#diagnosisForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Update selectedSymptoms from checked checkboxes before submission
+        selectedSymptoms = $('input[type="checkbox"]:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        console.log('Form submission - selected symptoms:', selectedSymptoms);
+        
+        if (selectedSymptoms.length === 0) {
+            alert('Vui lòng chọn ít nhất một triệu chứng!');
+            return;
+        }
+
+        // Show loading modal
+        $('#loadingModal').modal('show');
+        
+        // Add a safety timeout to hide modal if something goes wrong
+        const safetyTimeout = setTimeout(function() {
+            if ($('#loadingModal').hasClass('show')) {
+                console.warn('Safety timeout: hiding loading modal');
+                $('#loadingModal').modal('hide');
+            }
+        }, 15000); // 15 seconds timeout
+
+        // Send diagnosis request
+        $.ajax({
+            url: '/diagnose',
+            method: 'POST',
+            contentType: 'application/json',
+            timeout: 10000, // 10 second timeout
+            data: JSON.stringify({
+                symptoms: selectedSymptoms
+            }),
+            success: function(response) {
+                console.log('Diagnosis response:', response);
+                
+                // Hide loading modal immediately when we get response
+                $('#loadingModal').modal('hide');
+                
+                if (response.success) {
+                    displayDiagnosisResult(response.result);
+                } else {
+                    alert('Lỗi: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                // Always hide loading modal on error
+                $('#loadingModal').modal('hide');
+                console.error('AJAX Error:', status, error);
+                
+                if (status === 'timeout') {
+                    alert('Yêu cầu chẩn đoán bị timeout. Vui lòng thử lại!');
+                } else {
+                    alert('Có lỗi xảy ra khi kết nối với máy chủ!');
+                }
+                
+                // Force hide modal if still showing
+                setTimeout(function() {
+                    if ($('#loadingModal').hasClass('show')) {
+                        $('#loadingModal').removeClass('show');
+                        $('body').removeClass('modal-open');
+                        $('.modal-backdrop').remove();
+                    }
+                }, 100);
+            },
+            complete: function() {
+                // Clear safety timeout
+                clearTimeout(safetyTimeout);
+                
+                // Ensure loading modal is hidden
+                $('#loadingModal').modal('hide');
+                
+                // Force hide if modal is still showing
+                setTimeout(function() {
+                    if ($('#loadingModal').hasClass('show')) {
+                        $('#loadingModal').removeClass('show');
+                        $('body').removeClass('modal-open');
+                        $('.modal-backdrop').remove();
+                    }
+                }, 200);
+            }
+        });
+    });
+
+    // Display diagnosis result
+    function displayDiagnosisResult(result) {
+        try {
+            console.log('Displaying diagnosis result:', result);
+            
+            const $card = $('#diagnosisCard');
+            const $result = $('#diagnosisResult');
+        
+        let html = `
+            <div class="mb-3">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    ${result.timestamp}
+                </small>
+            </div>
+        `;
+
+        if (result.status === 'diagnosis') {
+            html += `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-1"></i>Chẩn đoán</h6>
+                    <h5 class="text-success">${result.diagnosis}</h5>
+                    <p class="mb-2">${result.message}</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: ${result.confidence_percentage}%">
+                            ${result.confidence_percentage.toFixed(1)}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        Độ tin cậy: ${result.confidence} điểm
+                    </small>
+                </div>
+            `;
+        } else if (result.status === 'suspected') {
+            html += `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-question-circle me-1"></i>Nghi ngờ</h6>
+                    <p>${result.message}</p>
+                    <div class="list-group list-group-flush">
+            `;
+            
+            result.suspected_diseases.forEach((disease, index) => {
+                const percentage = (disease[1] / result.confidence_percentage * 100).toFixed(1);
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${disease[0]}</span>
+                        <span class="badge bg-warning text-dark">${disease[1]} điểm</span>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar bg-warning" style="width: ${result.confidence_percentage}%">
+                            ${result.confidence_percentage.toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-1"></i>Không xác định</h6>
+                    <p>${result.message}</p>
+                    <small class="text-muted">
+                        Cần thêm thông tin để chẩn đoán chính xác
+                    </small>
+                </div>
+            `;
+        }
+
+        $result.html(html);
+        $card.show();
+        
+        // Ensure loading modal is hidden after displaying results
+        $('#loadingModal').modal('hide');
+        
+        // Scroll to results
+        $('html, body').animate({
+            scrollTop: $card.offset().top - 100
+        }, 500);
+        } catch (error) {
+            console.error('Error displaying diagnosis result:', error);
+            // Ensure loading modal is hidden even if there's an error
+            $('#loadingModal').modal('hide');
+        }
+    }
+    
+    // Clear all selections on page load
+    function clearAllSelections() {
+        // Uncheck all checkboxes
+        $('input[type="checkbox"]').prop('checked', false);
+        
+        // Clear selected symptoms array
+        selectedSymptoms = [];
+        
+        // Update display
+        updateSelectedSymptomsDisplay();
+        
+        // Hide diagnosis card
+        $('#diagnosisCard').hide();
+        
+        console.log('All selections cleared on page load, selectedSymptoms:', selectedSymptoms);
+    }
+    
+    // Call clearAllSelections when page loads
+    $(document).ready(function() {
+        clearAllSelections();
+    });
+    
+    // Handle page reload/refresh - clear all selections
+    $(window).on('beforeunload', function() {
+        // Clear selected symptoms from session storage
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem('selectedSymptoms');
+        }
+    });
+});
+</script>
+{% endblock %} 

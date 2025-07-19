@@ -1,0 +1,135 @@
+{
+  "diseases": {
+    "Cảm lạnh": {
+      "symptom_weights": {
+        "sốt nhẹ": 1,
+        "ho khan": 1,
+        "ho có đờm": 2,
+        "sổ mũi": 3,
+        "hắt hơi": 3,
+        "đau họng": 2,
+        "mệt mỏi": 1,
+        "ớn lạnh": 1,
+        "nhức đầu nhẹ": 1
+      }
+    },
+    "Cảm cúm": {
+      "symptom_weights": {
+        "sốt cao": 3,
+        "sốt nhẹ": 2,
+        "ho khan": 2,
+        "ho có đờm": 2,
+        "mệt mỏi": 3,
+        "đau cơ": 3,
+        "đau họng": 2,
+        "nhức đầu": 3,
+        "buồn nôn/nôn": 1,
+        "chóng mặt": 2,
+        "ớn lạnh": 3,
+        "đau nhức mắt": 2
+      }
+    },
+    "Sốt siêu vi": {
+      "symptom_weights": {
+        "sốt cao": 2,
+        "sốt nhẹ": 2,
+        "ho khan": 2,
+        "đau họng": 3,
+        "phát ban đỏ": 3,
+        "nhức đầu": 2,
+        "buồn nôn/nôn": 1,
+        "tiêu chảy": 1,
+        "đau mắt đỏ": 2,
+        "sưng hạch": 3,
+        "ớn lạnh": 1,
+        "mệt mỏi": 2
+      }
+    },
+    "COVID-19": {
+      "symptom_weights": {
+        "sốt cao": 2,
+        "sốt nhẹ": 1,
+        "ho khan": 3,
+        "ho có đờm": 1,
+        "mất vị giác/khứu giác": 4,
+        "khó thở": 3,
+        "mệt mỏi": 2,
+        "đau cơ": 1,
+        "đau họng": 1,
+        "nhức đầu": 2,
+        "buồn nôn/nôn": 1,
+        "tiêu chảy": 1,
+        "chóng mặt": 1,
+        "đau ngực": 2,
+        "ớn lạnh": 1
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "R001",
+      "conditions": ["mất vị giác/khứu giác", "sốt cao", "ho khan"],
+      "conclusion": "COVID-19",
+      "weight": 9
+    },
+    {
+      "id": "R002",
+      "conditions": ["sốt cao", "đau cơ", "mệt mỏi"],
+      "conclusion": "Cảm cúm",
+      "weight": 8
+    },
+    {
+      "id": "R003",
+      "conditions": ["sổ mũi", "hắt hơi", "ho khan"],
+      "conclusion": "Cảm lạnh",
+      "weight": 7
+    },
+    {
+      "id": "R004",
+      "conditions": ["sưng hạch", "phát ban đỏ", "sốt cao"],
+      "conclusion": "Sốt siêu vi",
+      "weight": 8
+    },
+    {
+      "id": "R005",
+      "conditions": ["khó thở", "đau ngực", "sốt cao"],
+      "conclusion": "COVID-19",
+      "weight": 10
+    }
+  ],
+  "symptom_mapping": {
+    "nghẹt mũi": "sổ mũi",
+    "chảy nước mũi": "sổ mũi",
+    "hắt xì": "hắt hơi",
+    "đau cổ họng": "đau họng",
+    "rát họng": "đau họng",
+    "sốt trên 39 độ": "sốt cao",
+    "sốt nóng": "sốt cao",
+    "nhức mỏi cơ": "đau cơ",
+    "đau nhức toàn thân": "đau cơ",
+    "choáng váng": "chóng mặt",
+    "buồn ói": "buồn nôn/nôn",
+    "nôn mửa": "buồn nôn/nôn",
+    "nổi ban": "phát ban đỏ",
+    "nổi mẩn": "phát ban đỏ",
+    "nổi hạch": "sưng hạch",
+    "viêm kết mạc": "đau mắt đỏ",
+    "đỏ mắt": "đau mắt đỏ",
+    "mất mùi": "mất vị giác/khứu giác",
+    "mất vị": "mất vị giác/khứu giác",
+    "không ngửi được": "mất vị giác/khứu giác",
+    "hụt hơi": "khó thở",
+    "thở khó": "khó thở",
+    "tức ngực": "đau ngực",
+    "đau tức ngực": "đau ngực",
+    "sốt dưới 38 độ": "sốt nhẹ",
+    "đau đầu nhẹ": "nhức đầu nhẹ",
+    "mỏi mệt": "mệt mỏi",
+    "uể oải": "mệt mỏi"
+  },
+  "metadata": {
+    "last_updated": "2025-7-17T08:30:00.000Z",
+    "version": "1.0",
+    "description": "Hệ chuyên gia chẩn đoán cảm lạnh, cảm cúm, sốt siêu vi, COVID-19"
+  }
+}
